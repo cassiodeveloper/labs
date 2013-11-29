@@ -1,7 +1,10 @@
 import os
+# http://pt.wikipedia.org/wiki/Zetta
+# http://pt.wikipedia.org/wiki/Escalas_curta_e_longa
 
 from math import log
-patterns =  [        
+
+pattern =  [        
         (900,	"novecentos"),	(800,	"oitocentos"),
         (700,	"setecentos"),	(600,	"seiscentos"),
         (500,	"quinhentos"),	(400,	"quatrocentos"),
@@ -21,11 +24,20 @@ patterns =  [
         (4,     "quatro"),	(3,	"três"),
         (2,	"dois"),	(1,	"um") ]
 
-units = ([4, "mil", "mil"],[6,"milhão","milhões"],[9,"trilhão","trilhões"] )
 
+shortScale = (
+        (1,(" ", " ")),
+        (2,("mil", "mil")),
+        (3,("milhão", "milhões")),
+        (4,("bilhão", "bilhões")),
+        (5,("trilhão", "trilhões")) ,
+        (6,("quatrilhão","quatrilhões")) ,
+        (7,("quintilhão",  "quintilhões")),
+        (8,("sextilhão",  "sextilhões")),
+        (9,("septilhão",  "septilhões")) 
+)
 
-
-def getScienticNotation(number):        
+def scienticNotation(number):        
     power =  (int)(log(number) / log(10));
     fraction = (number / pow(10,power))
     print("notation {0} is  {1} * (10^{2}) ".format(number,fraction,power) )
@@ -35,80 +47,103 @@ def between(value, bet1, bet2):
      return bool((bet1 < value) and (value < bet2));
 
 
-def num2word(number):    
-    strAux = ""
+def num2word(number):
+    print("Número: ",number)
+    strOut = ""
     aux = False        
     if number < 1000:
-        strAux = write999(number)
-    else:
-        power =  (int)(log(number) / log(10));
-        index = power - 2
-        if between(power, 2,6) : # trata de 1001 até 999999
-            value = int(str(number)[0: index])            
-            restValue = int(str(number)[index: len(str(number))])            
-            strAux = write999(value) + " mil "
-            if restValue  <=99 :
-               strAux +=  "e " + write999(restValue)
-            else:
-                strAux += write999(restValue)
-           
-    print(strAux)
+       strOut = write999(number)
+    else:        
+        # obtem a terna do número
+        terns = []
+        x  = number        
+        while x >= 1:
+            itemTern = x % 1000
+            terns.append(int(itemTern))
+            x /= 1000
+                
+        count = len(terns)
         
-def write999(number):
+        for item in reversed([a for a in shortScale if a[0] <= count]):            
+            currIndex = count - 1
+            currentTern = terns[currIndex]
+            #print("current",currentTern,"index",currIndex)
+            if currentTern == 0 :                
+                #strOut = strOut[0: (len(strOut)-1)]                
+                count -= 1    
+                continue
+            
+            plural = (currentTern > 1)
+            strOut +=  write999(currentTern) + " " + (item[1][1] if plural else item[1][0]) + " " 
+            count -= 1
+               
+    print(strOut)
+
+
+        
+def write999(number):    
     strAux = ""
     divRest = ""
+    if number == 0 :
+        strAux = "zero"
+        return strAux
+    
     while True:    
-        if number <= 20:            
-            strAux = searchPattern(number);
+        if number <= 20:
+            strAux = findPattern(number);
             break
             
         if strAux == "" and  divRest == "":                                    
-            strAux =  searchPattern(number)
-            divRest = int(number % getRoundedNumber(number))            
+            strAux =  findPattern(number)
+            divRest = int(number % setNumber(number))            
             aux =  True
             if divRest == 0:
                 break
         else:            
             if aux == False:
-                divRest = int(divRest % getRoundedNumber(divRest))
+                divRest = int(divRest % setNumber(divRest))
                 if divRest == 0:
                     break
             else:
                 divRest = divRest
                         
-            strAux += " e " + searchPattern(divRest)
+            strAux += " e " + findPattern(divRest)
             aux = False
 
-    
     return strAux        
 
 
-def searchPattern(number):    
-    for item in patterns:
+def findPattern(number):    
+    for item in pattern:
         value = item[0]
-        if value == getRoundedNumber(number):            
-            return str(item[1])
+        if value == setNumber(number):
+             return str(item[1])
 
 
-def getRoundedNumber(number):
+def setNumber(number):
     strNum = ""
     if number > 19:        
         for num in iter(str(number)):            
             if strNum == "":                
                 strNum = num
             else:                
-                strNum = str(strNum)  + "0"
+                strNum += "0"
     else:
         strNum = number
         
     return int(strNum)
   
 
-num2word(2100)
-num2word(13)
-num2word(1002)
-num2word(45667)
-num2word(999987)
+       
+num2word(534534534)
+num2word(0)
+
+
+
+
+
+
+
 
 
 
